@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QKart — Dijital Kart Platformu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #08080f;
+      --surface: #0f0f18;
+      --card: #13131e;
+      --card2: #171724;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --accent: #7c6aff;
+      --accent2: #ff6a9b;
+      --accent3: #6affde;
+      --accent4: #ffb86c;
+      --text: #eeedf8;
+      --muted: #6e6d80;
+      --radius: 20px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; }
+    .blob { position: fixed; border-radius: 50%; filter: blur(130px); pointer-events: none; z-index: 0; }
+    .b1 { width: 700px; height: 700px; background: var(--accent); opacity: 0.09; top: -300px; left: -200px; }
+    .b2 { width: 600px; height: 600px; background: var(--accent2); opacity: 0.08; bottom: -200px; right: -150px; }
+    .b3 { width: 500px; height: 500px; background: var(--accent3); opacity: 0.06; top: 40%; left: 40%; transform: translate(-50%,-50%); }
+
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 18px 52px; background: rgba(8,8,15,0.75); backdrop-filter: blur(24px); border-bottom: 1px solid var(--border); }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.45rem; letter-spacing: -0.5px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .nav-r { display: flex; align-items: center; gap: 32px; }
+    .nav-r a { color: var(--muted); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+    .nav-r a:hover { color: var(--text); }
+    .nav-cta { background: var(--accent) !important; color: #fff !important; padding: 9px 22px; border-radius: 100px; font-size: 0.85rem !important; font-weight: 600 !important; }
+    .nav-cta:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .hero { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 120px 24px 80px; }
+    .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; border: 1px solid rgba(124,106,255,0.35); border-radius: 100px; font-size: 0.77rem; font-weight: 600; color: var(--accent); letter-spacing: 0.6px; margin-bottom: 30px; background: rgba(124,106,255,0.08); animation: fu 0.7s ease both; }
+    .bdot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.75)} }
+    .hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2.8rem, 7vw, 5.8rem); line-height: 1.03; letter-spacing: -2.5px; max-width: 860px; animation: fu 0.7s 0.1s ease both; }
+    .grad { background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 45%, var(--accent4) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { margin-top: 22px; font-size: 1.1rem; color: var(--muted); max-width: 500px; font-weight: 300; line-height: 1.75; animation: fu 0.7s 0.2s ease both; }
+    .hero-btns { display: flex; gap: 14px; margin-top: 44px; animation: fu 0.7s 0.3s ease both; }
+    .btn-p { padding: 14px 34px; background: linear-gradient(135deg, var(--accent), #9b4fff); color: #fff; border: none; border-radius: 100px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 8px 32px rgba(124,106,255,0.35); text-decoration: none; font-family: 'DM Sans', sans-serif; }
+    .btn-p:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(124,106,255,0.5); }
+    .btn-g { padding: 14px 34px; background: transparent; color: var(--text); border: 1px solid var(--border2); border-radius: 100px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; font-family: 'DM Sans', sans-serif; }
+    .btn-g:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+    .chips { display: flex; gap: 10px; margin-top: 52px; flex-wrap: wrap; justify-content: center; animation: fu 0.7s 0.35s ease both; }
+    .chip { display: flex; align-items: center; gap: 7px; padding: 8px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 100px; font-size: 0.82rem; color: var(--muted); font-weight: 500; }
+    .chip-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .stats { display: flex; gap: 52px; margin-top: 64px; animation: fu 0.7s 0.4s ease both; }
+    .stat { text-align: center; }
+    .stat-n { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 700; background: linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .stat-l { font-size: 0.78rem; color: var(--muted); margin-top: 2px; letter-spacing: 0.3px; }
+
+    .app-wrap { position: relative; z-index: 1; padding: 80px 24px 100px; max-width: 1120px; margin: 0 auto; }
+    .sec-lbl { text-align: center; font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 10px; }
+    .sec-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(1.8rem, 4vw, 2.9rem); text-align: center; letter-spacing: -1px; margin-bottom: 52px; }
+
+    .tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 5px; width: fit-content; margin: 0 auto 44px; }
+    .tab { padding: 10px 26px; border: none; border-radius: 100px; font-size: 0.88rem; font-weight: 500; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.25s; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+    .tab.on { background: var(--accent); color: #fff; box-shadow: 0 4px 20px rgba(124,106,255,0.4); }
+
+    .tool { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: none; }
+    .tool.on { display: grid; grid-template-columns: 1fr 1fr; }
+
+    .form-side { padding: 44px; }
+    .form-side h3 { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 5px; }
+    .form-side .sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 30px; }
+
+    .f { margin-bottom: 16px; }
+    .f label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.3px; }
+    .f input, .f select, .f textarea { width: 100%; padding: 11px 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .f input:focus, .f select:focus, .f textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,106,255,0.14); }
+    .f textarea { resize: vertical; min-height: 76px; }
+    .f select option { background: #13131e; }
+    .f2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .color-wrap { display: flex; align-items: center; gap: 9px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 7px 12px; }
+    .color-wrap input[type="color"] { width: 30px; height: 30px; border: none; padding: 0; background: transparent; cursor: pointer; border-radius: 6px; }
+    .color-wrap span { font-size: 0.85rem; color: var(--muted); }
+    .gen-btn { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--accent), #9b4fff); color: #fff; border: none; border-radius: 12px; font-size: 0.93rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 6px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 6px 24px rgba(124,106,255,0.35); }
+    .gen-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 32px rgba(124,106,255,0.5); }
+    .gen-btn:active { transform: scale(0.98); }
+    .rand-btn { width: 100%; padding: 11px; background: transparent; color: var(--accent); border: 1px solid rgba(124,106,255,0.35); border-radius: 12px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-bottom: 10px; transition: background 0.2s, transform 0.2s; }
+    .rand-btn:hover { background: rgba(124,106,255,0.1); transform: translateY(-1px); }
+
+    .prev-side { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 44px; gap: 20px; }
+    .placeholder { width: 200px; height: 200px; border: 2px dashed var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); font-size: 0.83rem; text-align: center; }
+    .placeholder svg { opacity: 0.25; }
+    .dl-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: var(--card2); border: 1px solid var(--border); border-radius: 100px; color: var(--text); font-size: 0.83rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; font-family: 'DM Sans', sans-serif; }
+    .dl-btn:hover { background: rgba(124,106,255,0.15); border-color: var(--accent); transform: translateY(-1px); }
+
+    /* QR */
+    #qr-out { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    #qr-out canvas, #qr-out img { border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.55); }
+
+    /* MOTIVATION CARD */
+    .mcard-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    #mcard { width: 300px; min-height: 190px; border-radius: 20px; padding: 28px 26px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; gap: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.55); }
+    #mcard::after { content: ''; position: absolute; top: -40px; right: -40px; width: 130px; height: 130px; background: rgba(255,255,255,0.06); border-radius: 50%; pointer-events: none; }
+    .mcard-quote { font-family: 'Playfair Display', serif; font-size: 1rem; line-height: 1.55; position: relative; z-index: 1; }
+    .mcard-author { font-size: 0.72rem; font-weight: 600; opacity: 0.7; letter-spacing: 1px; text-transform: uppercase; position: relative; z-index: 1; }
+    .mcard-brand { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.35; position: relative; z-index: 1; text-align: right; }
+
+    /* BIO CARD */
+    .biocard-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+    #biocard { width: 290px; border-radius: 22px; padding: 26px 22px; background: linear-gradient(145deg,#1a1a2e,#16213e); border: 1px solid rgba(124,106,255,0.25); box-shadow: 0 20px 60px rgba(0,0,0,0.55); position: relative; overflow: hidden; }
+    #biocard::before { content: ''; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(124,106,255,0.25), transparent); pointer-events: none; }
+    .bio-top { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
+    .bio-avatar { width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+    .bio-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
+    .bio-handle { font-size: 0.76rem; color: var(--accent); margin-top: 2px; font-weight: 500; }
+    .bio-desc { font-size: 0.8rem; color: rgba(240,239,248,0.65); line-height: 1.6; margin-bottom: 14px; }
+    .bio-links { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .bio-link { display: flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: 100px; background: rgba(255,255,255,0.07); border: 1px solid var(--border); font-size: 0.73rem; color: rgba(240,239,248,0.75); font-weight: 500; text-decoration: none; }
+    .bio-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .bio-tag { padding: 3px 10px; border-radius: 100px; background: rgba(124,106,255,0.12); border: 1px solid rgba(124,106,255,0.25); font-size: 0.7rem; color: var(--accent); font-weight: 600; }
+    .bio-dl-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+    /* FEATURES */
+    .feat-sec { position: relative; z-index: 1; padding: 40px 24px 90px; }
+    .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 1000px; margin: 0 auto; }
+    .feat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px 26px; transition: border-color 0.3s, transform 0.3s; }
+    .feat:hover { border-color: rgba(124,106,255,0.38); transform: translateY(-4px); }
+    .feat-ico { width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 1.25rem; }
+    .feat h4 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 7px; }
+    .feat p { font-size: 0.84rem; color: var(--muted); line-height: 1.65; }
+
+    footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 30px 52px; display: flex; align-items: center; justify-content: space-between; }
+    footer p { font-size: 0.8rem; color: var(--muted); }
+    .fl { display: flex; gap: 24px; }
+    .fl a { font-size: 0.8rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .fl a:hover { color: var(--text); }
+
+    @keyframes fu { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+
+    @media(max-width:900px){
+      nav { padding: 15px 20px; }
+      .nav-r a:not(.nav-cta) { display: none; }
+      .tool.on { grid-template-columns: 1fr; }
+      .prev-side { border-left: none; border-top: 1px solid var(--border); }
+      .feat-grid { grid-template-columns: 1fr 1fr; }
+      .stats { gap: 28px; }
+      footer { flex-direction: column; gap: 14px; text-align: center; padding: 24px; }
+    }
+    @media(max-width:600px){
+      .f2 { grid-template-columns: 1fr; }
+      .hero-btns { flex-direction: column; align-items: center; }
+      .form-side { padding: 22px 16px; }
+      .prev-side { padding: 26px 16px; }
+      .feat-grid { grid-template-columns: 1fr; }
+      .chips { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
+
+<nav>
+  <div class="logo">QKart</div>
+  <div class="nav-r">
+    <a href="#app">Araçlar</a>
+    <a href="#features">Özellikler</a>
+    <a href="https://github.com" target="_blank">GitHub</a>
+    <a href="#app" class="nav-cta">Başla</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="badge"><span class="bdot"></span>3 Araç · Ücretsiz · Açık Kaynak</div>
+  <h1>Dijital Kimliğini<br><span class="grad">Saniyeler İçinde</span><br>Tasarla</h1>
+  <p>QR kodlar, motivasyon kartları ve bio kartvizitler — hepsi tek yerde, tamamen tarayıcıda.</p>
+  <div class="hero-btns">
+    <a href="#app" class="btn-p">Hemen Başla</a>
+    <a href="#features" class="btn-g">Özellikleri Gör</a>
+  </div>
+  <div class="chips">
+    <div class="chip"><span class="chip-dot" style="background:var(--accent)"></span>QR Kod Üreticisi</div>
+    <div class="chip"><span class="chip-dot" style="background:var(--accent2)"></span>Motivasyon Kartı</div>
+    <div class="chip"><span class="chip-dot" style="background:var(--accent3)"></span>Bio Kartvizit</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-n">3</div><div class="stat-l">Güçlü Araç</div></div>
+    <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Ücretsiz</div></div>
+    <div class="stat"><div class="stat-n">0</div><div class="stat-l">Sunucu Gerekmez</div></div>
+  </div>
+</section>
+
+<section class="app-wrap" id="app">
+  <div class="sec-lbl">Platform</div>
+  <h2 class="sec-title">Ne oluşturmak istersin?</h2>
+
+  <div class="tabs">
+    <button class="tab on" onclick="setTab('qr',this)">🔲 QR Kod</button>
+    <button class="tab" onclick="setTab('mot',this)">🌅 Motivasyon Kartı</button>
+    <button class="tab" onclick="setTab('bio',this)">🎴 Bio Kartı</button>
+  </div>
+
+  <!-- QR -->
+  <div class="tool on" id="t-qr">
+    <div class="form-side">
+      <h3>QR Kod Oluştur</h3>
+      <p class="sub">URL, metin, e-posta, telefon veya Wi-Fi için anında oluştur.</p>
+      <div class="f">
+        <label>İçerik Türü</label>
+        <select id="qr-type" onchange="qrTypeChange()">
+          <option value="url">🌐 Web Adresi (URL)</option>
+          <option value="text">📝 Metin</option>
+          <option value="email">✉️ E-posta</option>
+          <option value="phone">📞 Telefon</option>
+          <option value="wifi">📶 Wi-Fi</option>
+        </select>
+      </div>
+      <div class="f">
+        <label id="qr-lbl">Web Adresi</label>
+        <input type="text" id="qr-in" placeholder="https://örnek.com" />
+      </div>
+      <div id="wifi-x" style="display:none; margin-bottom:16px;">
+        <div class="f2">
+          <div class="f" style="margin:0"><label>Wi-Fi Şifresi</label><input type="text" id="wf-pass" placeholder="Şifre" /></div>
+          <div class="f" style="margin:0"><label>Güvenlik</label><select id="wf-sec"><option>WPA</option><option>WEP</option><option>nopass</option></select></div>
+        </div>
+      </div>
+      <div class="f">
+        <label>Boyut</label>
+        <select id="qr-sz">
+          <option value="160">Küçük (160px)</option>
+          <option value="220" selected>Orta (220px)</option>
+          <option value="300">Büyük (300px)</option>
+          <option value="400">Ekstra Büyük (400px)</option>
+        </select>
+      </div>
+      <div class="f2">
+        <div class="f">
+          <label>QR Rengi</label>
+          <div class="color-wrap">
+            <input type="color" id="qr-dk" value="#7c6aff" oninput="document.getElementById('qr-dk-v').textContent=this.value" />
+            <span id="qr-dk-v">#7c6aff</span>
+          </div>
+        </div>
+        <div class="f">
+          <label>Arka Plan</label>
+          <div class="color-wrap">
+            <input type="color" id="qr-lt" value="#ffffff" oninput="document.getElementById('qr-lt-v').textContent=this.value" />
+            <span id="qr-lt-v">#ffffff</span>
+          </div>
+        </div>
+      </div>
+      <button class="gen-btn" onclick="genQR()">✦ QR Kod Oluştur</button>
+    </div>
+    <div class="prev-side">
+      <div class="placeholder" id="qr-ph">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
+          <rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/>
+          <rect x="18" y="18" width="3" height="3"/>
+        </svg>
+        QR kodunuz burada görünecek
+      </div>
+      <div id="qr-out" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- MOTIVATION -->
+  <div class="tool" id="t-mot">
+    <div class="form-side">
+      <h3>Motivasyon Kartı</h3>
+      <p class="sub">İlham verici kartlar oluştur, PNG olarak paylaş.</p>
+      <button class="rand-btn" onclick="randQuote()">🎲 Rastgele Türkçe Alıntı</button>
+      <div class="f">
+        <label>Alıntı / Söz</label>
+        <textarea id="m-quote" rows="3" oninput="updateMcard()">Başarı, her gün tekrar edilen küçük çabaların toplamıdır.</textarea>
+      </div>
+      <div class="f">
+        <label>Kişi / Kaynak</label>
+        <input type="text" id="m-author" value="— Robert Collier" oninput="updateMcard()" />
+      </div>
+      <div class="f">
+        <label>Kart Boyutu</label>
+        <select id="m-size">
+          <option value="story">Instagram Story (9:16)</option>
+          <option value="square" selected>Kare (1:1)</option>
+          <option value="wide">Geniş (16:9)</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Arka Plan Teması</label>
+        <select id="m-theme" onchange="updateMcard()">
+          <option value="purple">🟣 Mor Gradyan</option>
+          <option value="sunset">🌅 Gün Batımı</option>
+          <option value="ocean">🌊 Okyanus</option>
+          <option value="forest">🌿 Orman</option>
+          <option value="midnight">🌙 Gece Yarısı</option>
+          <option value="rose">🌹 Gül</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Yazı Rengi</label>
+        <div class="color-wrap">
+          <input type="color" id="m-color" value="#ffffff" oninput="document.getElementById('m-color-v').textContent=this.value; updateMcard()" />
+          <span id="m-color-v">#ffffff</span>
+        </div>
+      </div>
+      <button class="gen-btn" onclick="downloadMcard()">📥 PNG İndir</button>
+    </div>
+    <div class="prev-side">
+      <div class="mcard-wrap">
+        <div id="mcard">
+          <div class="mcard-quote" id="mcard-q">Başarı, her gün tekrar edilen küçük çabaların toplamıdır.</div>
+          <div>
+            <div class="mcard-author" id="mcard-a">— Robert Collier</div>
+            <div class="mcard-brand">QKART</div>
+          </div>
+        </div>
+        <button class="dl-btn" onclick="downloadMcard()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          PNG İndir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIO -->
+  <div class="tool" id="t-bio">
+    <div class="form-side">
+      <h3>Bio Kartvizit</h3>
+      <p class="sub">Profesyonel dijital bio kartınızı tasarlayın ve paylaşın.</p>
+      <div class="f2">
+        <div class="f"><label>Ad</label><input type="text" id="b-fn" value="Ahmet" oninput="updateBio()" /></div>
+        <div class="f"><label>Soyad</label><input type="text" id="b-ln" value="Yılmaz" oninput="updateBio()" /></div>
+      </div>
+      <div class="f">
+        <label>Kullanıcı Adı</label>
+        <input type="text" id="b-handle" value="@ahmetyilmaz" oninput="updateBio()" />
+      </div>
+      <div class="f">
+        <label>Kısa Biyografi</label>
+        <textarea id="b-desc" oninput="updateBio()">Yazılım geliştirici &amp; tasarımcı. Açık kaynak sevdalısı.</textarea>
+      </div>
+      <div class="f">
+        <label>Linkler (Ad|URL, virgülle ayırın)</label>
+        <input type="text" id="b-links" value="GitHub|https://github.com, LinkedIn|https://linkedin.com" oninput="updateBio()" />
+      </div>
+      <div class="f">
+        <label>Etiketler (virgülle ayırın)</label>
+        <input type="text" id="b-tags" value="React, Design, OpenSource" oninput="updateBio()" />
+      </div>
+      <div class="f">
+        <label>Renk Teması</label>
+        <select id="b-theme" onchange="updateBio()">
+          <option value="dark">🌑 Koyu Mor</option>
+          <option value="slate">🪨 Slate</option>
+          <option value="teal">🌊 Teal</option>
+          <option value="rose">🌹 Rose</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button class="gen-btn" style="flex:1" onclick="downloadBioPng()">📥 PNG İndir</button>
+        <button class="gen-btn" style="flex:1;background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 6px 24px rgba(34,197,94,0.3)" onclick="downloadBioHtml()">🌐 HTML İndir</button>
+      </div>
+    </div>
+    <div class="prev-side">
+      <div class="biocard-wrap">
+        <div id="biocard">
+          <div class="bio-top">
+            <div class="bio-avatar" id="b-av">AY</div>
+            <div>
+              <div class="bio-name" id="b-pname">Ahmet Yılmaz</div>
+              <div class="bio-handle" id="b-phandle">@ahmetyilmaz</div>
+            </div>
+          </div>
+          <div class="bio-desc" id="b-pdesc">Yazılım geliştirici & tasarımcı. Açık kaynak sevdalısı.</div>
+          <div class="bio-links" id="b-plinks">
+            <span class="bio-link">🔗 GitHub</span>
+            <span class="bio-link">💼 LinkedIn</span>
+          </div>
+          <div class="bio-tags" id="b-ptags">
+            <span class="bio-tag">React</span>
+            <span class="bio-tag">Design</span>
+            <span class="bio-tag">OpenSource</span>
+          </div>
+        </div>
+        <div class="bio-dl-row">
+          <button class="dl-btn" onclick="downloadBioPng()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> PNG
+          </button>
+          <button class="dl-btn" style="border-color:rgba(34,197,94,0.3);color:#22c55e" onclick="downloadBioHtml()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> HTML
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="feat-sec" id="features">
+  <div class="sec-lbl">Neden QKart?</div>
+  <h2 class="sec-title">Her şey tek yerde</h2>
+  <div class="feat-grid">
+    <div class="feat"><div class="feat-ico" style="background:rgba(124,106,255,0.15)">🔲</div><h4>Özelleştirilebilir QR</h4><p>Renk, boyut ve içerik türünü seçin. Wi-Fi paylaşımı da dahil.</p></div>
+    <div class="feat"><div class="feat-ico" style="background:rgba(255,106,155,0.15)">🌅</div><h4>Motivasyon Kartları</h4><p>6 farklı tema, Türkçe alıntı kütüphanesi ve özel yazı. Instagram'a hazır.</p></div>
+    <div class="feat"><div class="feat-ico" style="background:rgba(106,255,222,0.15)">🎴</div><h4>Bio Kartvizit</h4><p>Sosyal linkler, etiketler ve biyografi. PNG veya HTML çıktı.</p></div>
+    <div class="feat"><div class="feat-ico" style="background:rgba(255,184,108,0.15)">🔒</div><h4>%100 Gizli</h4><p>Verileriniz hiçbir sunucuya gönderilmez. Tüm işlemler tarayıcınızda.</p></div>
+    <div class="feat"><div class="feat-ico" style="background:rgba(80,200,255,0.15)">⚡</div><h4>Anında Önizleme</h4><p>Yazdıkça kartınız gerçek zamanlı olarak güncellenir.</p></div>
+    <div class="feat"><div class="feat-ico" style="background:rgba(150,255,80,0.15)">📁</div><h4>Çoklu Format</h4><p>PNG ve HTML formatlarında indirin. Her platforma uygun.</p></div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 QKart — Tarayıcıda çalışır, sunucu yok.</p>
+  <div class="fl">
+    <a href="https://github.com" target="_blank">GitHub</a>
+    <a href="#">Gizlilik</a>
+    <a href="#">Hakkında</a>
+  </div>
+</footer>
+
+<script>
+// TABS
+function setTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.tool').forEach(t => t.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('t-' + id).classList.add('on');
+}
+
+// QR
+function qrTypeChange() {
+  const t = document.getElementById('qr-type').value;
+  document.getElementById('wifi-x').style.display = t === 'wifi' ? 'block' : 'none';
+  const m = { url:['Web Adresi','https://örnek.com'], text:['Metin','Mesajınızı yazın...'], email:['E-posta','ornek@mail.com'], phone:['Telefon','+90 555 000 00 00'], wifi:['Wi-Fi Adı (SSID)','Ağ adı'] };
+  document.getElementById('qr-lbl').textContent = m[t][0];
+  document.getElementById('qr-in').placeholder = m[t][1];
+}
+
+function genQR() {
+  const type = document.getElementById('qr-type').value;
+  let raw = document.getElementById('qr-in').value.trim();
+  if (!raw) { alert('Lütfen bir içerik girin!'); return; }
+  let content = raw;
+  if (type === 'email') content = 'mailto:' + raw;
+  else if (type === 'phone') content = 'tel:' + raw;
+  else if (type === 'wifi') { const p = document.getElementById('wf-pass').value; const s = document.getElementById('wf-sec').value; content = 'WIFI:T:'+s+';S:'+raw+';P:'+p+';;'; }
+  const sz = parseInt(document.getElementById('qr-sz').value);
+  const dk = document.getElementById('qr-dk').value;
+  const lt = document.getElementById('qr-lt').value;
+  const out = document.getElementById('qr-out');
+  out.innerHTML = '';
+  document.getElementById('qr-ph').style.display = 'none';
+  out.style.display = 'flex';
+  new QRCode(out, { text: content, width: sz, height: sz, colorDark: dk, colorLight: lt, correctLevel: QRCode.CorrectLevel.H });
+  setTimeout(() => {
+    const c = out.querySelector('canvas');
+    if (!c) return;
+    const a = document.createElement('a');
+    a.className = 'dl-btn'; a.href = c.toDataURL('image/png'); a.download = 'qkart-qr.png';
+    a.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> PNG İndir';
+    out.appendChild(a);
+  }, 200);
+}
+
+// MOTIVATION
+const quotes = [
+  { q: "Başarı, her gün tekrar edilen küçük çabaların toplamıdır.", a: "— Robert Collier" },
+  { q: "Hayal ettiğin şeyi yapabilirsin. Hayal edebilmek bile onu yapabileceğinin kanıtıdır.", a: "— Walt Disney" },
+  { q: "Engeller, hedefleri olmayanların görebileceği şeylerdir.", a: "— Henry Ford" },
+  { q: "Bugün zor olan şeyler, yarın kolaylaşır. Yarın kolaylaşan şeyler, öbür gün mükemmelleşir.", a: "— Anonim" },
+  { q: "En büyük zafer, hiç düşmemek değil; her düşüşten sonra yeniden kalkmaktır.", a: "— Nelson Mandela" },
+  { q: "Bir şeyi yapamayacağınızı düşünüyorsanız, haklısınız. Yapabileceğinizi düşünüyorsanız, yine haklısınız.", a: "— Henry Ford" },
+  { q: "Değişim zor görünür, imkânsız görünür, sonra kaçınılmaz görünür.", a: "— Nelson Mandela" },
+  { q: "Yavaş gitsen de önemli değil, durmadığın sürece.", a: "— Konfüçyüs" },
+  { q: "Büyük işler, tek bir hamlede değil, küçük şeylerin bir araya gelmesiyle yapılır.", a: "— Vincent Van Gogh" },
+  { q: "Gelecek, hayallerine inananlarındır.", a: "— Eleanor Roosevelt" },
+  { q: "Kendine inan ve yarısına gelmişsin demektir.", a: "— Theodore Roosevelt" },
+  { q: "Başarının sırrı, sıradan insanların üstesinden gelemeyeceği şeyleri yapmaya hazır olmaktır.", a: "— Albert Gray" },
+];
+
+const themes = {
+  purple: 'linear-gradient(135deg,#667eea,#764ba2)',
+  sunset: 'linear-gradient(135deg,#f093fb,#f5576c)',
+  ocean:  'linear-gradient(135deg,#4facfe,#00f2fe)',
+  forest: 'linear-gradient(135deg,#43e97b,#38f9d7)',
+  midnight: 'linear-gradient(135deg,#0c0c1d,#1a1a3e,#2d1b69)',
+  rose:   'linear-gradient(135deg,#ff9a9e,#fecfef)',
+};
+
+function randQuote() {
+  const q = quotes[Math.floor(Math.random() * quotes.length)];
+  document.getElementById('m-quote').value = q.q;
+  document.getElementById('m-author').value = q.a;
+  updateMcard();
+}
+
+function updateMcard() {
+  document.getElementById('mcard-q').textContent = document.getElementById('m-quote').value;
+  document.getElementById('mcard-a').textContent = document.getElementById('m-author').value;
+  const card = document.getElementById('mcard');
+  card.style.background = themes[document.getElementById('m-theme').value];
+  card.style.color = document.getElementById('m-color').value;
+}
+
+function downloadMcard() {
+  const size = document.getElementById('m-size').value;
+  const dims = { story:[320,569], square:[320,320], wide:[569,320] };
+  const [w,h] = dims[size];
+  const card = document.getElementById('mcard');
+  const ow = card.style.width, oh = card.style.height;
+  card.style.width = w+'px'; card.style.height = h+'px';
+  html2canvas(card, { scale:2, useCORS:true, backgroundColor:null }).then(canvas => {
+    card.style.width = ow; card.style.height = oh;
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png'); a.download = 'qkart-motivasyon.png'; a.click();
+  });
+}
+
+// BIO
+const bioThemes = {
+  dark:  { bg:'linear-gradient(145deg,#1a1a2e,#16213e)', border:'rgba(124,106,255,0.25)', glow:'rgba(124,106,255,0.15)', acc:'#7c6aff' },
+  slate: { bg:'linear-gradient(145deg,#1e293b,#0f172a)', border:'rgba(100,180,255,0.2)', glow:'rgba(100,180,255,0.12)', acc:'#60a5fa' },
+  teal:  { bg:'linear-gradient(145deg,#0d2420,#0f2a2a)', border:'rgba(45,212,191,0.25)', glow:'rgba(45,212,191,0.12)', acc:'#2dd4bf' },
+  rose:  { bg:'linear-gradient(145deg,#2d1020,#1a0812)', border:'rgba(251,113,133,0.25)', glow:'rgba(251,113,133,0.12)', acc:'#fb7185' },
+};
+
+function updateBio() {
+  const fn = document.getElementById('b-fn').value || 'Ad';
+  const ln = document.getElementById('b-ln').value || 'Soyad';
+  const handle = document.getElementById('b-handle').value || '@handle';
+  const desc = document.getElementById('b-desc').value;
+  const linksRaw = document.getElementById('b-links').value;
+  const tagsRaw = document.getElementById('b-tags').value;
+  const t = bioThemes[document.getElementById('b-theme').value];
+
+  document.getElementById('b-pname').textContent = fn + ' ' + ln;
+  document.getElementById('b-phandle').textContent = handle;
+  document.getElementById('b-phandle').style.color = t.acc;
+  document.getElementById('b-pdesc').textContent = desc;
+  document.getElementById('b-av').textContent = (fn[0]||'A').toUpperCase() + (ln[0]||'Y').toUpperCase();
+
+  const card = document.getElementById('biocard');
+  card.style.background = t.bg;
+  card.style.borderColor = t.border;
+
+  const linksEl = document.getElementById('b-plinks');
+  linksEl.innerHTML = '';
+  linksRaw.split(',').forEach(l => {
+    const parts = l.trim().split('|');
+    if (!parts[0]) return;
+    const a = document.createElement('a');
+    a.className = 'bio-link'; a.href = parts[1]||'#'; a.target = '_blank';
+    a.textContent = '🔗 ' + parts[0].trim();
+    linksEl.appendChild(a);
+  });
+
+  const tagsEl = document.getElementById('b-ptags');
+  tagsEl.innerHTML = '';
+  tagsRaw.split(',').forEach(tag => {
+    if (!tag.trim()) return;
+    const s = document.createElement('span');
+    s.className = 'bio-tag'; s.textContent = tag.trim();
+    s.style.color = t.acc; s.style.borderColor = t.border; s.style.background = t.glow;
+    tagsEl.appendChild(s);
+  });
+}
+
+function downloadBioPng() {
+  html2canvas(document.getElementById('biocard'), { scale:3, useCORS:true, backgroundColor:null }).then(canvas => {
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png'); a.download = 'qkart-bio.png'; a.click();
+  });
+}
+
+function downloadBioHtml() {
+  const fn = document.getElementById('b-fn').value || 'Ad';
+  const ln = document.getElementById('b-ln').value || 'Soyad';
+  const handle = document.getElementById('b-handle').value || '@handle';
+  const desc = document.getElementById('b-desc').value;
+  const linksRaw = document.getElementById('b-links').value;
+  const tagsRaw = document.getElementById('b-tags').value;
+  const t = bioThemes[document.getElementById('b-theme').value];
+
+  let linksHtml = '';
+  linksRaw.split(',').forEach(l => {
+    const parts = l.trim().split('|');
+    if (!parts[0]) return;
+    linksHtml += `<a href="${parts[1]||'#'}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:100px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);font-size:13px;color:rgba(255,255,255,0.8);text-decoration:none;margin:3px;">🔗 ${parts[0].trim()}</a>`;
+  });
+
+  let tagsHtml = '';
+  tagsRaw.split(',').forEach(tag => {
+    if (!tag.trim()) return;
+    tagsHtml += `<span style="padding:4px 12px;border-radius:100px;background:${t.glow};border:1px solid ${t.border};font-size:12px;color:${t.acc};font-weight:600;margin:3px;display:inline-block;">${tag.trim()}</span>`;
+  });
+
+  const html = `<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${fn} ${ln}</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#08080f;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'DM Sans',sans-serif;}</style>
+</head><body>
+<div style="width:340px;border-radius:24px;padding:32px 28px;background:${t.bg};border:1px solid ${t.border};box-shadow:0 30px 80px rgba(0,0,0,0.7);">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+    <div style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#7c6aff,#ff6a9b);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;flex-shrink:0;">${(fn[0]||'A').toUpperCase()}${(ln[0]||'Y').toUpperCase()}</div>
+    <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:#eeedf8;">${fn} ${ln}</div><div style="font-size:13px;color:${t.acc};margin-top:2px;font-weight:500;">${handle}</div></div>
+  </div>
+  <p style="font-size:13px;color:rgba(240,239,248,0.65);line-height:1.65;margin-bottom:18px;">${desc}</p>
+  <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;">${linksHtml}</div>
+  <div style="display:flex;flex-wrap:wrap;">${tagsHtml}</div>
+  <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.07);font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:2px;text-align:right;font-weight:700;">QKART</div>
+</div>
+</body></html>`;
+
+  const blob = new Blob([html], { type:'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'qkart-bio.html'; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// Init
+updateMcard();
+updateBio();
+</script>
+</body>
+</html>
